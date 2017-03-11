@@ -1,0 +1,22 @@
+{
+  "name": "backprop-js",
+  "main": "index.js",
+  "authors": [
+    "Ivan Vergiliev <ivan.vergiliev@gmail.com>"
+  ],
+  "description": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "vis": "^4.18.1",
+    "mathjs": "^3.10.0"
+  }
+}
