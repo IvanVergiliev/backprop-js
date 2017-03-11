@@ -1,0 +1,66 @@
+<html>
+<head>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.18.0/vis.min.js"></script>
+	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.9.0/math.js"></script>
+	<script type="text/javascript" src="index.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.18.0/vis.min.css">
+</head>
+<body>
+<div id="graph" />
+
+<script type="text/javascript">
+let graph = {
+  nodes: [
+    {id: 1, label: 'foo'},
+    {id: 2, label: 'bar'}
+  ],
+  edges: [
+    {from: 1, to: 2}
+  ]
+};
+
+var tree = convertTree(math.parse('1 + 2 * exp(sigma(x)) + x * y'));
+var tree = convertTree(math.parse('1 + x * y'));
+
+var treeToGraph = function (tree) {
+  const context = new ExpressionContext(new Map([['x', 3], ['y', 5]]));
+	let used = new Map();
+  let nodes = [];
+  let edges = [];
+  const visit = function (node) {
+    if (used.has(node)) {
+      return used.get(node);
+    }
+    const id = used.size;
+    used.set(node, id);
+    nodes.push({id, label: node.toString()});
+    for (let prev of node.getAncestors(context)) {
+      console.log(1);
+      console.log(prev);
+      const prevId = visit(prev[0]);
+      console.log(2);
+      console.log(prev);
+      edges.push({from: prevId, to: id, arrows: 'to', label: prev[1], font: {align: 'top'}});
+    }
+    return id;
+  };
+  visit(tree);
+  console.log(edges);
+  return {nodes, edges};
+};
+
+let options = {
+	layout: {
+		hierarchical: {
+			direction: 'DU',
+      sortMethod: 'directed',
+      levelSeparation: 80
+		}
+	}
+};
+
+let container = document.getElementById('graph');
+let network = new vis.Network(container, treeToGraph(tree), options);
+</script>
+</body>
