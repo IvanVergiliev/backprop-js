@@ -1,3 +1,5 @@
+math = require('mathjs');
+
 class ExpressionContext {
   constructor(symbolValues) {
     this.symbolValues = symbolValues;
@@ -236,3 +238,6 @@ var convertTree = function (mathTree) {
 var tree = convertTree(math.parse('1 + 2 * exp(sigma(x))'));
 tree.backPropagate(new ExpressionContext(new Map([['x', 3]])), 1);
 console.log(JSON.stringify(tree));
+
+exports.convertExpression = (exp) => convertTree(math.parse(exp))
+exports.ExpressionContext = ExpressionContext;

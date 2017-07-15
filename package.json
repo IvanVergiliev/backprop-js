@@ -1,0 +1,26 @@
+{
+  "name": "backprop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "mathjs": "^3.9.0",
+    "math.js": "^1.0.17"
+  },
+  "devDependencies": {
+    "jest": "^20.0.4"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IvanVergiliev/backprop-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IvanVergiliev/backprop-js/issues"
+  },
+  "homepage": "https://github.com/IvanVergiliev/backprop-js#readme"
+}
