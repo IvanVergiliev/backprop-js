@@ -6,6 +6,8 @@ test('should backpropagate over simple addition', () => {
   console.log(JSON.stringify(tree));
   expect(tree.leftNode.derivative).toBe(1);
   expect(tree.rightNode.derivative).toBe(1);
+  expect(tree.parents[0].childCount).toBe(1);
+  expect(tree.parents[1].childCount).toBe(1);
 });
 
 test('should backpropagate over simple multiplication', () => {
@@ -14,6 +16,8 @@ test('should backpropagate over simple multiplication', () => {
   console.log(JSON.stringify(tree));
   expect(tree.leftNode.derivative).toBe(7);
   expect(tree.rightNode.derivative).toBe(5);
+  expect(tree.parents[0].childCount).toBe(1);
+  expect(tree.parents[1].childCount).toBe(1);
 });
 
 test('should backpropagate over sigmoids', () => {
@@ -21,6 +25,7 @@ test('should backpropagate over sigmoids', () => {
   tree.backPropagate(1);
   console.log(JSON.stringify(tree));
   expect(tree.previousNode.derivative).toBeCloseTo(0.00664); // Value computed with wolfram alpha.
+  expect(tree.parents[0].childCount).toBe(1);
 });
 
 test('should backpropagate over nested operations', () => {
@@ -28,4 +33,5 @@ test('should backpropagate over nested operations', () => {
   tree.backPropagate(1);
   console.log(JSON.stringify(tree));
   expect(tree.leftNode.rightNode.derivative).toBe(5 + 13); // Hacky way to get to the 'y' node.
+  expect(tree.parents[0].parents[1].childCount).toBe(2);
 });

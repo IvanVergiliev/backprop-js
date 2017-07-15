@@ -11,9 +11,12 @@ class ExpressionContext {
 }
 
 class Node {
-  constructor(context) {
+  constructor(context, ...parents) {
     this.context = context;
+    this.parents = parents;
     this.derivative = 0;
+    this.childCount = 0;
+    this.parents.forEach((parent) => parent.childCount++);
   }
 
   // TODO(ivan): Cache the values.
@@ -74,7 +77,7 @@ class SymbolicNode extends Node {
 
 class BinaryOpNode extends Node {
   constructor(context, leftNode, rightNode) {
-    super(context);
+    super(context, leftNode, rightNode);
     this.leftNode = leftNode;
     this.rightNode = rightNode;
   }
@@ -134,7 +137,7 @@ class MultiplyNode extends BinaryOpNode {
 
 class ExpNode extends Node {
   constructor(context, previousNode) {
-    super(context);
+    super(context, previousNode);
     this.previousNode = previousNode;
   }
 
@@ -156,7 +159,7 @@ var sigma = (x) => 1 / (1 + Math.exp(-x));
 
 class SigmaNode extends Node {
   constructor(context, previousNode) {
-    super(context);
+    super(context, previousNode);
     this.previousNode = previousNode;
   }
 
