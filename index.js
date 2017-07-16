@@ -16,6 +16,7 @@ class Node {
     this.parents = parents;
     this.derivative = 0;
     this.childCount = 0;
+    this.accumulatedDerivatives = 0;
     this.parents.forEach((parent) => parent.childCount++);
   }
 
@@ -27,10 +28,27 @@ class Node {
     throw new Exception("This is an abstract class.");
   }
 
+  backPropagate() {
+    this.derivative = 1;
+    this.backPropagateImpl();
+  }
+
   // TODO(ivan): Accumulate all derivatives for this node before starting to
   // backpropagate to the input nodes.
-  backPropagate(derivative) {
-    throw new Exception("This is an abstract class.");
+  backPropagateImpl() {
+    let ancestorDerivatives = this.getAncestors();
+    for (let derivative of ancestorDerivatives) {
+      derivative[0].accumulateDerivative(derivative[1] * this.derivative);
+    }
+  }
+
+  accumulateDerivative(derivative) {
+    this.derivative += derivative;
+    ++this.accumulatedDerivatives;
+    if (this.accumulatedDerivatives >= this.childCount) {
+      // Hack: use >= to make it work for last node which has 0 child nodes.
+      this.backPropagateImpl();
+    }
   }
 
   getAncestors() {}
@@ -47,10 +65,6 @@ class ConstantNode extends Node {
     return this.value;
   }
 
-  backPropagate(derivative) {
-    this.derivative += derivative;
-  }
-
   getAncestors() { return []; }
 
   toString() { return this.value; }
@@ -64,10 +78,6 @@ class SymbolicNode extends Node {
 
   getValue() {
     return this.context.getSymbolValue(this.name);
-  }
-
-  backPropagate(derivative) {
-    this.derivative += derivative;
   }
 
   getAncestors() { return []; }
@@ -94,12 +104,6 @@ class PlusNode extends BinaryOpNode {
     return this.leftNode.getValue() + this.rightNode.getValue();
   }
 
-  backPropagate(derivative) {
-    this.derivative += derivative;
-    this.leftNode.backPropagate(derivative);
-    this.rightNode.backPropagate(derivative);
-  }
-
   toString() { return '+'; }
 
   getAncestors() {
@@ -117,12 +121,6 @@ class MultiplyNode extends BinaryOpNode {
 
   getValue() {
     return this.leftNode.getValue() * this.rightNode.getValue();
-  }
-
-  backPropagate(derivative) {
-    this.derivative += derivative;
-    this.leftNode.backPropagate(this.rightNode.getValue() * derivative);
-    this.rightNode.backPropagate(this.leftNode.getValue() * derivative);
   }
 
   toString() { return '*'; }
@@ -145,11 +143,6 @@ class ExpNode extends Node {
     return Math.exp(this.previousNode.getValue());
   }
 
-  backPropagate(derivative) {
-    this.derivative += derivative;
-    this.previousNode.backPropagate(Math.exp(this.previousNode.getValue()) * derivative);
-  }
-
   getAncestors() { return [[this.previousNode, Math.exp(this.previousNode.getValue())]]; }
 
   toString() { return 'exp'; }
@@ -165,12 +158,6 @@ class SigmaNode extends Node {
 
   getValue() {
     return sigma(this.previousNode.getValue());
-  }
-
-  backPropagate(derivative) {
-    this.derivative += derivative;
-    let sigmaX = sigma(this.previousNode.getValue());
-    this.previousNode.backPropagate(sigmaX * (1 - sigmaX) * derivative);
   }
 
   getAncestors() {
