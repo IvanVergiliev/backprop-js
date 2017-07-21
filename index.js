@@ -61,9 +61,7 @@ class ConstantNode extends Node {
     this.value = value;
   }
 
-  getValue() {
-    return this.value;
-  }
+  getValue() { return this.value; }
 
   getAncestors() { return []; }
 
@@ -85,65 +83,42 @@ class SymbolicNode extends Node {
   toString() { return this.name; }
 }
 
-class BinaryOpNode extends Node {
-  constructor(context, leftNode, rightNode) {
-    super(context, leftNode, rightNode);
-    this.leftNode = leftNode;
-    this.rightNode = rightNode;
-  }
-
-  getAncestors() { return [this.leftNode, this.rightNode]; }
-}
-
-class PlusNode extends BinaryOpNode {
-  constructor(context, leftNode, rightNode) {
-    super(context, leftNode, rightNode);
-  }
-
+class PlusNode extends Node {
   getValue() {
-    return this.leftNode.getValue() + this.rightNode.getValue();
+    return this.parents[0].getValue() + this.parents[1].getValue();
   }
 
   toString() { return '+'; }
 
   getAncestors() {
     return [
-      [this.leftNode, 1],
-      [this.rightNode, 1]
+      [this.parents[0], 1],
+      [this.parents[1], 1]
     ];
   }
 }
 
-class MultiplyNode extends BinaryOpNode {
-  constructor(context, leftNode, rightNode) {
-    super(context, leftNode, rightNode);
-  }
-
+class MultiplyNode extends Node {
   getValue() {
-    return this.leftNode.getValue() * this.rightNode.getValue();
+    return this.parents[0].getValue() * this.parents[1].getValue();
   }
 
   toString() { return '*'; }
 
   getAncestors() {
     return [
-      [this.leftNode, this.rightNode.getValue()],
-      [this.rightNode, this.leftNode.getValue()]
+      [this.parents[0], this.parents[1].getValue()],
+      [this.parents[1], this.parents[0].getValue()]
     ];
   }
 }
 
 class ExpNode extends Node {
-  constructor(context, previousNode) {
-    super(context, previousNode);
-    this.previousNode = previousNode;
-  }
-
   getValue() {
-    return Math.exp(this.previousNode.getValue());
+    return Math.exp(this.parents[0].getValue());
   }
 
-  getAncestors() { return [[this.previousNode, Math.exp(this.previousNode.getValue())]]; }
+  getAncestors() { return [[this.parents[0], Math.exp(this.parents[0].getValue())]]; }
 
   toString() { return 'exp'; }
 }
@@ -151,18 +126,13 @@ class ExpNode extends Node {
 var sigma = (x) => 1 / (1 + Math.exp(-x));
 
 class SigmaNode extends Node {
-  constructor(context, previousNode) {
-    super(context, previousNode);
-    this.previousNode = previousNode;
-  }
-
   getValue() {
-    return sigma(this.previousNode.getValue());
+    return sigma(this.parents[0].getValue());
   }
 
   getAncestors() {
-    let sigmaX = sigma(this.previousNode.getValue());
-    return [[this.previousNode, sigmaX * (1 - sigmaX)]];
+    let sigmaX = sigma(this.parents[0].getValue());
+    return [[this.parents[0], sigmaX * (1 - sigmaX)]];
   }
 
   toString() { return 'sigma'; }
