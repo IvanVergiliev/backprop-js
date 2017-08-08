@@ -14,7 +14,7 @@ class Node {
   constructor(context, ...parents) {
     this.context = context;
     this.parents = parents;
-    this.derivative = 0;
+    this.derivative = new math.expression.node.ConstantNode(0);
     this.childCount = 0;
     this.accumulatedDerivatives = 0;
     this.parents.forEach((parent) => parent.childCount++);
@@ -29,7 +29,7 @@ class Node {
   }
 
   backPropagate() {
-    this.derivative = 1;
+    this.derivative = new math.expression.node.ConstantNode(1);
     this.backPropagateImpl();
   }
 
@@ -38,15 +38,16 @@ class Node {
   backPropagateImpl() {
     let ancestorDerivatives = this.getAncestors();
     for (let derivative of ancestorDerivatives) {
-      derivative[0].accumulateDerivative(derivative[1] * this.derivative);
+      derivative[0].accumulateDerivative(new math.expression.node.OperatorNode('*', 'multiply', [derivative[1], this.derivative]));
     }
   }
 
   accumulateDerivative(derivative) {
-    this.derivative += derivative;
+    this.derivative = new math.expression.node.OperatorNode('+', 'add', [this.derivative, derivative]);
     ++this.accumulatedDerivatives;
     if (this.accumulatedDerivatives >= this.childCount) {
       // Hack: use >= to make it work for last node which has 0 child nodes.
+      this.derivative = math.simplify(this.derivative);
       this.backPropagateImpl();
     }
   }
@@ -61,7 +62,7 @@ class ConstantNode extends Node {
     this.value = value;
   }
 
-  getValue() { return this.value; }
+  getValue() { return new math.expression.ConstantNode(this.value); }
 
   getAncestors() { return []; }
 
@@ -75,7 +76,7 @@ class SymbolicNode extends Node {
   }
 
   getValue() {
-    return this.context.getSymbolValue(this.name);
+    return new math.expression.node.SymbolNode(this.name);
   }
 
   getAncestors() { return []; }
@@ -85,22 +86,22 @@ class SymbolicNode extends Node {
 
 class PlusNode extends Node {
   getValue() {
-    return this.parents[0].getValue() + this.parents[1].getValue();
+    return new math.expression.node.OperatorNode('+', 'add', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
   toString() { return '+'; }
 
   getAncestors() {
     return [
-      [this.parents[0], 1],
-      [this.parents[1], 1]
+      [this.parents[0], new math.expression.node.ConstantNode(1)],
+      [this.parents[1], new math.expression.node.ConstantNode(1)]
     ];
   }
 }
 
 class MultiplyNode extends Node {
   getValue() {
-    return this.parents[0].getValue() * this.parents[1].getValue();
+    return new math.expression.node.OperatorNode('*', 'multiply', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
   toString() { return '*'; }
@@ -115,24 +116,32 @@ class MultiplyNode extends Node {
 
 class ExpNode extends Node {
   getValue() {
-    return Math.exp(this.parents[0].getValue());
+    return new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()]);
   }
 
-  getAncestors() { return [[this.parents[0], Math.exp(this.parents[0].getValue())]]; }
+  getAncestors() { return [[this.parents[0], new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()])]]; }
 
   toString() { return 'exp'; }
 }
 
 var sigma = (x) => 1 / (1 + Math.exp(-x));
+var sigmaNode = new math.expression.node.FunctionAssignmentNode('sigma', ['x'], math.parse('1 / (1 + exp(-x))'));
 
 class SigmaNode extends Node {
   getValue() {
-    return sigma(this.parents[0].getValue());
+    return new math.expression.node.FunctionNode(sigmaNode, [this.parents[0].getValue()]);
   }
 
   getAncestors() {
-    let sigmaX = sigma(this.parents[0].getValue());
-    return [[this.parents[0], sigmaX * (1 - sigmaX)]];
+    const sigmaX = new math.expression.node.FunctionNode(sigmaNode, [this.parents[0].getValue()]);
+    const oneMinusSigma = new math.expression.node.OperatorNode('-', 'subtract', [new math.expression.node.ConstantNode(1), sigmaX]);
+    const derivative = new math.expression.node.OperatorNode('*', 'multiply', [
+      sigmaX,
+      oneMinusSigma
+    ]);
+    return [
+      [this.parents[0], derivative]
+    ];
   }
 
   toString() { return 'sigma'; }
