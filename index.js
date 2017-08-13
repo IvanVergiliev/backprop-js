@@ -83,6 +83,21 @@ class PlusNode extends Node {
   }
 }
 
+class MinusNode extends Node {
+  getValue() {
+    return new math.expression.node.OperatorNode('-', 'subtract', [this.parents[0].getValue(), this.parents[1].getValue()]);
+  }
+
+  toString() { return '-'; }
+
+  getAncestors() {
+    return [
+      [this.parents[0], new math.expression.node.ConstantNode(1)],
+      [this.parents[1], new math.expression.node.ConstantNode(-1)]
+    ];
+  }
+}
+
 class MultiplyNode extends Node {
   getValue() {
     return new math.expression.node.OperatorNode('*', 'multiply', [this.parents[0].getValue(), this.parents[1].getValue()]);
@@ -146,6 +161,9 @@ var convertTree = function (mathTree, context) {
     }
     if (mathNode.op == '+') {
       return new PlusNode(context, convertNode(mathNode.args[0]), convertNode(mathNode.args[1]));
+    }
+    if (mathNode.op == '-') {
+      return new MinusNode(context, convertNode(mathNode.args[0]), convertNode(mathNode.args[1]));
     }
     if (mathNode.op == '*') {
       return new MultiplyNode(context, convertNode(mathNode.args[0]), convertNode(mathNode.args[1]));
