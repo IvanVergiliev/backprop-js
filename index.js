@@ -20,9 +20,9 @@ class Node {
   }
 
   backPropagateImpl() {
-    let ancestorDerivatives = this.getAncestors();
-    for (let derivative of ancestorDerivatives) {
-      derivative[0].accumulateDerivative(new math.expression.node.OperatorNode('*', 'multiply', [derivative[1], this.derivative]));
+    let ancestorDerivatives = this.getAncestorDerivatives();
+    for (var i = 0; i < this.parents.length; ++i) {
+      this.parents[i].accumulateDerivative(new math.expression.node.OperatorNode('*', 'multiply', [ancestorDerivatives[i], this.derivative]));
     }
   }
 
@@ -36,7 +36,7 @@ class Node {
     }
   }
 
-  getAncestors() {}
+  getAncestorDerivatives() {}
   toString() {}
 }
 
@@ -48,7 +48,7 @@ class ConstantNode extends Node {
 
   getValue() { return new math.expression.ConstantNode(this.value); }
 
-  getAncestors() { return []; }
+  getAncestorDerivatives() { return []; }
 
   toString() { return this.value; }
 }
@@ -63,7 +63,7 @@ class SymbolicNode extends Node {
     return new math.expression.node.SymbolNode(this.name);
   }
 
-  getAncestors() { return []; }
+  getAncestorDerivatives() { return []; }
 
   toString() { return this.name; }
 }
@@ -75,10 +75,10 @@ class PlusNode extends Node {
 
   toString() { return '+'; }
 
-  getAncestors() {
+  getAncestorDerivatives() {
     return [
-      [this.parents[0], new math.expression.node.ConstantNode(1)],
-      [this.parents[1], new math.expression.node.ConstantNode(1)]
+      new math.expression.node.ConstantNode(1),
+      new math.expression.node.ConstantNode(1)
     ];
   }
 }
@@ -90,10 +90,10 @@ class MinusNode extends Node {
 
   toString() { return '-'; }
 
-  getAncestors() {
+  getAncestorDerivatives() {
     return [
-      [this.parents[0], new math.expression.node.ConstantNode(1)],
-      [this.parents[1], new math.expression.node.ConstantNode(-1)]
+      new math.expression.node.ConstantNode(1),
+      new math.expression.node.ConstantNode(-1)
     ];
   }
 }
@@ -105,10 +105,10 @@ class MultiplyNode extends Node {
 
   toString() { return '*'; }
 
-  getAncestors() {
+  getAncestorDerivatives() {
     return [
-      [this.parents[0], this.parents[1].getValue()],
-      [this.parents[1], this.parents[0].getValue()]
+      this.parents[1].getValue(),
+      this.parents[0].getValue()
     ];
   }
 }
@@ -118,7 +118,7 @@ class ExpNode extends Node {
     return new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()]);
   }
 
-  getAncestors() { return [[this.parents[0], new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()])]]; }
+  getAncestorDerivatives() { return [new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()])]; }
 
   toString() { return 'exp'; }
 }
@@ -131,16 +131,14 @@ class SigmaNode extends Node {
     return new math.expression.node.FunctionNode(sigmaNode, [this.parents[0].getValue()]);
   }
 
-  getAncestors() {
+  getAncestorDerivatives() {
     const sigmaX = new math.expression.node.FunctionNode(sigmaNode, [this.parents[0].getValue()]);
     const oneMinusSigma = new math.expression.node.OperatorNode('-', 'subtract', [new math.expression.node.ConstantNode(1), sigmaX]);
     const derivative = new math.expression.node.OperatorNode('*', 'multiply', [
       sigmaX,
       oneMinusSigma
     ]);
-    return [
-      [this.parents[0], derivative]
-    ];
+    return [ derivative ];
   }
 
   toString() { return 'sigma'; }
