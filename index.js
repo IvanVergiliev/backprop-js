@@ -1,15 +1,5 @@
 math = require('mathjs');
 
-class ExpressionContext {
-  constructor(symbolValues) {
-    this.symbolValues = symbolValues;
-  }
-
-  getSymbolValue(symbolName) {
-    return this.symbolValues.get(symbolName);
-  }
-}
-
 class Node {
   constructor(context, ...parents) {
     this.context = context;
@@ -20,10 +10,6 @@ class Node {
     this.parents.forEach((parent) => parent.childCount++);
   }
 
-  // TODO(ivan): Cache the values.
-  // TODO(ivan): Caching will not work properly with different contexts. Consider
-  // encapsulating the nodes in a Tree object or something external that implements the
-  // caching.
   getValue() {
     throw new Exception("This is an abstract class.");
   }
@@ -33,8 +19,6 @@ class Node {
     this.backPropagateImpl();
   }
 
-  // TODO(ivan): Accumulate all derivatives for this node before starting to
-  // backpropagate to the input nodes.
   backPropagateImpl() {
     let ancestorDerivatives = this.getAncestors();
     for (let derivative of ancestorDerivatives) {
@@ -147,32 +131,6 @@ class SigmaNode extends Node {
   toString() { return 'sigma'; }
 }
 
-// var in1 = new ConstantNode(3);
-// var in2 = new ConstantNode(4);
-// var in3 = new ConstantNode(17);
-// 
-// var node = new ExpNode(
-//   new MultiplyNode(
-//     new PlusNode(in1, in2),
-//     in3
-//   )
-// );
-// 
-// var tempNode = new MultiplyNode(in1, in2);
-// node = new ExpNode(tempNode);
-// 
-// var temp0 = new MultiplyNode(in1, in2);
-// var temp1 = new ExpNode(temp0);
-// var temp2 = new ExpNode(temp0);
-// node = new PlusNode(temp1, temp2);
-// 
-// console.log(node.getValue());
-// node.backPropagate(1);
-// 
-// console.log(in1.derivative);
-// console.log(in2.derivative);
-// console.log(in3.derivative);
-
 var convertTree = function (mathTree, context) {
   const symbolMap = new Map();
   const convertNode = function (mathNode) {
@@ -205,9 +163,4 @@ var convertTree = function (mathTree, context) {
   return convertNode(mathTree);
 };
 
-// var tree = convertTree(math.parse('1 + 2 * exp(sigma(x))'));
-// tree.backPropagate(new ExpressionContext(new Map([['x', 3]])), 1);
-// console.log(JSON.stringify(tree));
-
-exports.convertExpression = (exp, context) => convertTree(math.parse(exp), context);
-exports.ExpressionContext = ExpressionContext;
+exports.convertExpression = (exp) => convertTree(math.parse(exp));
