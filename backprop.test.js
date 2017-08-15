@@ -35,6 +35,14 @@ test('should backpropagate over simple multiplication', () => {
   expect(tree.parents[1].childCount).toBe(1);
 });
 
+test('should backpropagate over simple division', () => {
+  var tree = convertExpression('x / y');
+  tree.backPropagate(1);
+  console.log(JSON.stringify(tree));
+  expect(tree.parents[0].derivative.toString()).toBe('1 / y');
+  expect(tree.parents[1].derivative.toString()).toBe('-(x / y ^ 2)');
+});
+
 test('should backpropagate over sigmoids', () => {
   var tree = convertExpression('sigma(x)');
   tree.backPropagate(1);
@@ -52,4 +60,10 @@ test('should backpropagate over nested operations', () => {
   expect(tree.parents[0].parents[1].derivative.toString()).toBe('x + z'); // Hacky way to get to the 'y' node.
   expect(tree.parents[0].parents[1].derivative.eval({x: 5, y: 7, z: 13})).toBe(5 + 13); // Hacky way to get to the 'y' node.
   expect(tree.parents[0].parents[1].childCount).toBe(2);
+});
+
+test('complicated expression', () => {
+  var tree = convertExpression('(x + sigma(y)) / (sigma(x) + (x + y) * (x + y))');
+  console.log(tree.parents[0].parents[0].derivative.toString());
+  console.log(tree.parents[0].parents[0].derivative.toString());
 });

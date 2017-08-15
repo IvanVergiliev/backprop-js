@@ -113,6 +113,24 @@ class MultiplyNode extends Node {
   }
 }
 
+class DivideNode extends Node {
+  getValue() {
+    return new math.expression.node.OperatorNode('/', 'divide', [this.parents[0].getValue(), this.parents[1].getValue()]);
+  }
+
+  toString() { return '*'; }
+
+  getAncestorDerivatives() {
+    const oneOverYSquared = new math.expression.node.OperatorNode('^', 'pow', [this.parents[1].getValue(), new math.expression.node.ConstantNode(-2)]);
+    const minus1OverYSquared = new math.expression.node.OperatorNode('-', 'unaryMinus', [oneOverYSquared]);
+    const dfdy = new math.expression.node.OperatorNode('*', 'multiply', [this.parents[0].getValue(), minus1OverYSquared]);
+    return [
+      new math.expression.node.OperatorNode('/', 'divide', [new math.expression.node.ConstantNode(1), this.parents[1].getValue()]),
+      dfdy
+    ];
+  }
+}
+
 class ExpNode extends Node {
   getValue() {
     return new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()]);
@@ -169,6 +187,9 @@ var convertTree = function (mathTree, context) {
     }
     if (mathNode.op == '*') {
       return new MultiplyNode(context, convertNode(mathNode.args[0]), convertNode(mathNode.args[1]));
+    }
+    if (mathNode.op == '/') {
+      return new DivideNode(context, convertNode(mathNode.args[0]), convertNode(mathNode.args[1]));
     }
 
     if (mathNode.hasOwnProperty('fn')) {
