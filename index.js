@@ -150,11 +150,15 @@ var convertTree = function (mathTree, context) {
     if (!mathNode.hasOwnProperty('args')) {
       if (mathNode.hasOwnProperty('value')) {
         return new ConstantNode(context, mathNode.value);
-      } else {
+      }
+      if (mathNode.hasOwnProperty('name')) {
         if (!symbolMap.has(mathNode.name)) {
           symbolMap.set(mathNode.name, new SymbolicNode(context, mathNode.name));
         }
         return symbolMap.get(mathNode.name);
+      }
+      if (mathNode.hasOwnProperty('content')) {
+        return convertNode(mathNode.content);
       }
     }
     if (mathNode.op == '+') {
@@ -175,6 +179,9 @@ var convertTree = function (mathTree, context) {
         return new SigmaNode(context, convertNode(mathNode.args[0]));
       }
     }
+
+    console.log("Unknown node type!");
+    console.log(mathNode.toString());
   };
   return convertNode(mathTree);
 };
