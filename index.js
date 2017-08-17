@@ -57,7 +57,7 @@ class ConstantNode extends Node {
     this.value = value;
   }
 
-  getValueImpl() { return new math.expression.ConstantNode(this.value); }
+  getValueImpl() { return new math.expression.node.ConstantNode(this.value); }
 
   getAncestorDerivatives() { return []; }
 

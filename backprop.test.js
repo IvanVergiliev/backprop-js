@@ -10,6 +10,12 @@ test('should backpropagate over simple addition', () => {
   expect(tree.parents[1].childCount).toBe(1);
 });
 
+test('should support constant expressions', () => {
+  var tree = convertExpression('x + 5');
+  tree.backPropagate(1);
+  expect(tree.parents[0].derivative.toString()).toBe('1');
+});
+
 test('should backpropagate over parenthesized addition', () => {
   var tree = convertExpression('(x + y)');
   console.log(JSON.stringify(tree));
