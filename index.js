@@ -8,9 +8,20 @@ class Node {
     this.childCount = 0;
     this.accumulatedDerivatives = 0;
     this.parents.forEach((parent) => parent.childCount++);
+
+    this.hasValue = false;
+    this.value = 0.0;
   }
 
   getValue() {
+    if (!this.hasValue) {
+      this.value = this.getValueImpl();
+      this.hasValue = true;
+    }
+    return this.value;
+  }
+
+  getValueImpl() {
     throw new Exception("This is an abstract class.");
   }
 
@@ -46,7 +57,7 @@ class ConstantNode extends Node {
     this.value = value;
   }
 
-  getValue() { return new math.expression.ConstantNode(this.value); }
+  getValueImpl() { return new math.expression.ConstantNode(this.value); }
 
   getAncestorDerivatives() { return []; }
 
@@ -59,7 +70,7 @@ class SymbolicNode extends Node {
     this.name = name;
   }
 
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.SymbolNode(this.name);
   }
 
@@ -69,7 +80,7 @@ class SymbolicNode extends Node {
 }
 
 class PlusNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.OperatorNode('+', 'add', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
@@ -84,7 +95,7 @@ class PlusNode extends Node {
 }
 
 class MinusNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.OperatorNode('-', 'subtract', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
@@ -99,7 +110,7 @@ class MinusNode extends Node {
 }
 
 class MultiplyNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.OperatorNode('*', 'multiply', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
@@ -114,7 +125,7 @@ class MultiplyNode extends Node {
 }
 
 class DivideNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.OperatorNode('/', 'divide', [this.parents[0].getValue(), this.parents[1].getValue()]);
   }
 
@@ -132,7 +143,7 @@ class DivideNode extends Node {
 }
 
 class ExpNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.FunctionNode('exp', [this.parents[0].getValue()]);
   }
 
@@ -145,7 +156,7 @@ var sigma = (x) => 1 / (1 + Math.exp(-x));
 var sigmaNode = new math.expression.node.FunctionAssignmentNode('sigma', ['x'], math.parse('1 / (1 + exp(-x))'));
 
 class SigmaNode extends Node {
-  getValue() {
+  getValueImpl() {
     return new math.expression.node.FunctionNode(sigmaNode, [this.parents[0].getValue()]);
   }
 
