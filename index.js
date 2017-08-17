@@ -10,15 +10,15 @@ class Node {
     this.parents.forEach((parent) => parent.childCount++);
 
     this.hasValue = false;
-    this.value = 0.0;
+    this.computedValue = 0.0;
   }
 
   getValue() {
     if (!this.hasValue) {
-      this.value = this.getValueImpl();
+      this.computedValue = this.getValueImpl();
       this.hasValue = true;
     }
-    return this.value;
+    return this.computedValue;
   }
 
   getValueImpl() {
