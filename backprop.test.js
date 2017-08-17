@@ -53,13 +53,19 @@ test('should backpropagate over sigmoids', () => {
   expect(tree.parents[0].childCount).toBe(1);
 });
 
-test('should backpropagate over nested operations', () => {
+test('should backpropagate over complicated addition', () => {
   var tree = convertExpression('x * y + y * z');
   tree.backPropagate(1);
   console.log(JSON.stringify(tree));
   expect(tree.parents[0].parents[1].derivative.toString()).toBe('x + z'); // Hacky way to get to the 'y' node.
   expect(tree.parents[0].parents[1].derivative.eval({x: 5, y: 7, z: 13})).toBe(5 + 13); // Hacky way to get to the 'y' node.
   expect(tree.parents[0].parents[1].childCount).toBe(2);
+});
+
+test('should backpropagate over complicated multiplication', () => {
+  var tree = convertExpression('(x + y) * (y + z)');
+  tree.backPropagate(1);
+  expect(tree.parents[0].parents[1].derivative.toString()).toBe('2 * y + z + x'); // Hacky way to get to the 'y' node.
 });
 
 test('complicated expression', () => {
