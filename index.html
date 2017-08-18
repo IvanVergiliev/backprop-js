@@ -21,10 +21,9 @@ let graph = {
 };
 
 var tree = convertTree(math.parse('1 + 2 * exp(sigma(x)) + x * y'));
-var tree = convertTree(math.parse('1 + x * y'));
+// var tree = convertTree(math.parse('1 + x * y'));
 
 var treeToGraph = function (tree) {
-  const context = new ExpressionContext(new Map([['x', 3], ['y', 5]]));
 	let used = new Map();
   let nodes = [];
   let edges = [];
@@ -35,13 +34,18 @@ var treeToGraph = function (tree) {
     const id = used.size;
     used.set(node, id);
     nodes.push({id, label: node.toString()});
-    for (let prev of node.getAncestors(context)) {
+    var derivatives = node.getAncestorDerivatives();
+    for (var i = 0; i < node.parents.length; ++i) {
       console.log(1);
-      console.log(prev);
-      const prevId = visit(prev[0]);
+      const prevId = visit(node.parents[i]);
       console.log(2);
-      console.log(prev);
-      edges.push({from: prevId, to: id, arrows: 'to', label: prev[1], font: {align: 'top'}});
+      edges.push({
+        from: prevId,
+        to: id,
+        arrows: 'to',
+        label: math.simplify(derivatives[i]),
+        font: {align: 'top'}
+      });
     }
     return id;
   };
