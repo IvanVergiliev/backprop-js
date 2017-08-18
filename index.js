@@ -1,4 +1,9 @@
-math = require('mathjs');
+const isNode = typeof module !== 'undefined' && module.exports;
+const root = isNode ? module.exports : window;
+
+if (isNode) {
+  var math = require('mathjs');
+}
 
 class Node {
   constructor(context, ...parents) {
@@ -218,4 +223,4 @@ var convertTree = function (mathTree, context) {
   return convertNode(mathTree);
 };
 
-exports.convertExpression = (exp) => convertTree(math.parse(exp));
+root.convertExpression = (exp) => convertTree(math.parse(exp));
